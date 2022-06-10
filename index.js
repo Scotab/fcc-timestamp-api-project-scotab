@@ -21,21 +21,28 @@ app.get("/", function (req, res) {
 
 // your first API endpoint... 
 app.get("/api/:date", (req, res, next) =>{
-  if(!req.params.date){
-    res.json({unix: Date.now().getTime(), utc: Date.now().toUTCString()});
-    next();
-  }else if (new Date(req.params.date).getTime() > 0) {
+  if (new RegExp(/(^\d{4}-[0-1]\d-[0-3]\d)/).test(req.params.date)) {
+    req.params.date = req.params.date.match(/(^\d{4}-[0-1]\d-[0-3]\d)/)[0];
     let unix = new Date(req.params.date).getTime();
     let utc = new Date(req.params.date).toUTCString();
     res.json({unix: unix, utc: utc})
-    next()
-  }else if (typeof parseInt(req.params.date) === 'number'){
-    res.json({unix: req.params.date, utc: new Date(parseInt(req.params.date)).toUTCString()});
-  }else{
+  }else if (new RegExp(/(^\d{1,}$)/).test(req.params.date)){
+    res.json({ unix: parseInt(req.params.date), utc: new Date(parseInt(req.params.date)).toUTCString()});
+  }else if (req.params.date === ''){
+    res.json({unix: new Date.now(), utc: new Date.now().toUTCString()});
+  }else if(new Date(req.params.date).toString() === 'Invalid Date'){
     res.json({error: "Invalid Date"});
+  }
+  else{
+    let unix = new Date(req.params.date).getTime();
+    let utc = new Date(req.params.date).toUTCString();
+    res.json({unix: unix, utc: utc})
   }
 })
 
+app.get("/api/", (req,res) => {
+  res.json({unix: Date.now(), utc: Date.now()});
+})
 
 
 // listen for requests :)
